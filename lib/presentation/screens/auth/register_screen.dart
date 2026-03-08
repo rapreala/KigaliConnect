@@ -49,6 +49,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
+          } else if (state is AuthEmailNotVerified || state is AuthAuthenticated) {
+            // Pop RegisterScreen — AuthGate underneath will show the correct
+            // next screen (EmailVerificationScreen or AppShell).
+            Navigator.of(context).pop();
           }
         },
         builder: (context, state) {

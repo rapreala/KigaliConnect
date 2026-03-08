@@ -29,8 +29,15 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       await user.reload();
       final refreshed = FirebaseAuth.instance.currentUser;
       if (refreshed != null && refreshed.emailVerified && mounted) {
-        // Re-trigger auth check so AuthGate routes to the app shell.
+        // Re-trigger auth check so AuthGate routes to AppShell.
         context.read<AuthBloc>().add(const AuthCheckRequested());
+        // If this screen was pushed via Navigator (e.g. from RegisterScreen),
+        // pop back so AuthGate's updated content becomes visible.
+        // If shown directly by AuthGate (cold-start), canPop() is false
+        // and AuthGate rebuilds on its own.
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       }
     });
   }
