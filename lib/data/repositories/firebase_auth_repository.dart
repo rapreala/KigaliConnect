@@ -52,8 +52,6 @@ class FirebaseAuthRepository implements AuthRepository {
     );
     final user = credential.user!;
 
-    await user.updateDisplayName(displayName.trim());
-
     final profile = UserProfile(
       uid: user.uid,
       email: email.trim(),
