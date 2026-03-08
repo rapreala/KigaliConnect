@@ -29,4 +29,9 @@ abstract class AuthRepository {
 
   /// Fetch the UserProfile for the currently signed-in user
   Future<UserProfile?> getCurrentUserProfile();
+
+  /// Create a Firestore profile from the current Firebase Auth user.
+  /// Used as a fallback when the profile write during registration failed.
+  /// Returns null if no user is signed in.
+  Future<UserProfile?> createProfileFromCurrentUser();
 }

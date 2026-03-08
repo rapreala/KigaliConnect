@@ -119,6 +119,22 @@ class FirebaseAuthRepository implements AuthRepository {
     return _fetchProfile(user.uid);
   }
 
+  @override
+  Future<UserProfile?> createProfileFromCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) return null;
+    final existing = await _fetchProfile(user.uid);
+    if (existing != null) return existing;
+    final profile = UserProfile(
+      uid: user.uid,
+      email: user.email ?? '',
+      displayName: user.displayName ?? user.email ?? 'User',
+      createdAt: DateTime.now(),
+    );
+    await _users.doc(user.uid).set(profile.toJson());
+    return profile;
+  }
+
   Future<UserProfile?> _fetchProfile(String uid) async {
     final doc = await _users.doc(uid).get();
     if (!doc.exists) return null;

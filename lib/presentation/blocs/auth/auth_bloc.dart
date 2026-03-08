@@ -50,7 +50,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     emit(const AuthLoading());
     try {
-      final profile = await _authRepository.getCurrentUserProfile();
+      var profile = await _authRepository.getCurrentUserProfile();
+      // Fallback: profile may not exist yet if the Firestore write during
+      // registration failed (race condition). Create it now from Auth data.
+      profile ??= await _authRepository.createProfileFromCurrentUser();
       if (profile != null) {
         emit(AuthAuthenticated(profile));
       } else {
