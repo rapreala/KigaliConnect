@@ -101,6 +101,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: isLoading ? null : _submit,
                     ),
                     const SizedBox(height: AppSpacing.p16),
+
+                    // ── OR divider ──
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.p12),
+                          child: Text(
+                            'OR',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: AppColors.textSecondary),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.p16),
+
+                    // Google Sign-Up button
+                    OutlinedButton.icon(
+                      onPressed: isLoading
+                          ? null
+                          : () => context
+                              .read<AuthBloc>()
+                              .add(const AuthGoogleSignInRequested()),
+                      icon: Image.network(
+                        'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+                        height: 20,
+                        width: 20,
+                        errorBuilder: (_, error, stack) =>
+                            const Icon(Icons.login, size: 20),
+                      ),
+                      label: const Text('Continue with Google'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: AppSpacing.p12),
+                        side: BorderSide(
+                            color: AppColors.textSecondary.withValues(
+                                alpha: 0.4)),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.p16),
                     TextButton(
                       onPressed: isLoading
                           ? null
