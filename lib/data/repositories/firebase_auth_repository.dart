@@ -28,12 +28,12 @@ class FirebaseAuthRepository implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    final credential = await _auth.signInWithEmailAndPassword(
+    await _auth.signInWithEmailAndPassword(
       email: email.trim(),
       password: password,
     );
-    final user = credential.user!;
-    final profile = await _fetchProfile(user.uid);
+    final uid = _auth.currentUser!.uid;
+    final profile = await _fetchProfile(uid);
     if (profile == null) {
       throw Exception('User profile not found. Please contact support.');
     }
@@ -46,20 +46,22 @@ class FirebaseAuthRepository implements AuthRepository {
     required String password,
     required String displayName,
   }) async {
-    final credential = await _auth.createUserWithEmailAndPassword(
+    await _auth.createUserWithEmailAndPassword(
       email: email.trim(),
       password: password,
     );
-    final user = credential.user!;
+    // Use currentUser instead of credential.user to avoid a Pigeon
+    // type-cast bug in firebase_auth 4.x on Android.
+    final uid = _auth.currentUser!.uid;
 
     final profile = UserProfile(
-      uid: user.uid,
+      uid: uid,
       email: email.trim(),
       displayName: displayName.trim(),
       createdAt: DateTime.now(),
     );
 
-    await _users.doc(user.uid).set(profile.toJson());
+    await _users.doc(uid).set(profile.toJson());
     return profile;
   }
 
