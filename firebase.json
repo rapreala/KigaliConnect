@@ -1,1 +1,33 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"kigali-connect-app","appId":"1:180069958881:android:457879b8e4ce0f395723a0","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"kigali-connect-app","appId":"1:180069958881:ios:c2e5a9783fd235db5723a0","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"kigali-connect-app","configurations":{"android":"1:180069958881:android:457879b8e4ce0f395723a0","ios":"1:180069958881:ios:c2e5a9783fd235db5723a0"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "kigali-connect-app",
+          "appId": "1:180069958881:android:457879b8e4ce0f395723a0",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "kigali-connect-app",
+          "appId": "1:180069958881:ios:c2e5a9783fd235db5723a0",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kigali-connect-app",
+          "configurations": {
+            "android": "1:180069958881:android:457879b8e4ce0f395723a0",
+            "ios": "1:180069958881:ios:c2e5a9783fd235db5723a0"
+          }
+        }
+      }
+    }
+  }
+}
