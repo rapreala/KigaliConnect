@@ -260,7 +260,7 @@ These tasks establish the project foundation. Estimated time: 1–2 days.
   - ⚠️ **MANUAL STEP REQUIRED**: Replace `YOUR_API_KEY` in `AndroidManifest.xml` — see `SETUP.md`
   - _Requirements: MAP-01, MAP-02, MAP-03, MAP-04, MAP-05, MAP-06_
 
-- [ ] 12. Checkpoint — Map integration complete
+- [x] 12. Checkpoint — Map integration complete ✅
   - MapViewScreen shows all listing markers at correct coordinates
   - Tap marker → ListingDetailScreen opens with correct data
   - Embedded map renders with marker at correct position
@@ -285,7 +285,7 @@ These tasks establish the project foundation. Estimated time: 1–2 days.
   - Sign Out button dispatches `AuthSignOutRequested` to `AuthBloc`
   - _Requirements: SET-01, SET-02, SET-03, SET-04_
 
-- [ ] 15. Checkpoint — Settings complete
+- [x] 15. Checkpoint — Settings complete ✅
   - Settings screen displays correct user profile
   - Toggle notifications → Firestore `notificationsEnabled` updates
   - Tap Sign Out → returns to LoginScreen
@@ -301,7 +301,7 @@ These tasks establish the project foundation. Estimated time: 1–2 days.
   - **Implementation note**: 3-tab layout (Places / Map / Settings) rather than 4, since My Listings is accessed via edit/delete actions within the Places tab — keeps the nav bar clean
   - _Requirements: NAV-01, NAV-02, NAV-03, NAV-04, NAV-05_
 
-- [ ] 17. Checkpoint — Navigation complete
+- [x] 17. Checkpoint — Navigation complete ✅
   - All 3 tabs render without error
   - Switching tabs preserves scroll position (`IndexedStack`)
   - Map tab shows same listings as Places tab (shared `ListingsBloc`)
@@ -311,7 +311,7 @@ These tasks establish the project foundation. Estimated time: 1–2 days.
 
 ### ⬜ Phase 2: Polish, Testing & Submission
 
-- [ ] 18. Write unit tests for domain layer
+- [x] 18. Write unit tests for domain layer ✅
   - Create `test/unit/listing_model_test.dart` — `toJson`/`fromJson` round-trip, `copyWith`
   - Create `test/unit/listing_validator_test.dart` — all validators, boundary cases
   - Create `test/unit/auth_validator_test.dart` — email regex, password length
