@@ -47,7 +47,6 @@ class ListingCard extends StatelessWidget {
                     Text(
                       listing.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                       maxLines: 1,
@@ -56,9 +55,7 @@ class ListingCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       listing.address,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                      style: Theme.of(context).textTheme.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -85,9 +82,9 @@ class ListingCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.p8),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
               ),
             ],
           ),

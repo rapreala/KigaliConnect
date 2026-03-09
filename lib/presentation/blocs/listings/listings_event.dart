@@ -7,13 +7,9 @@ abstract class ListingsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Start listening to the listings stream (optionally with a category filter)
+/// Start listening to the listings stream
 class ListingsSubscriptionRequested extends ListingsEvent {
-  const ListingsSubscriptionRequested({this.category});
-  final PlaceCategory? category;
-
-  @override
-  List<Object?> get props => [category];
+  const ListingsSubscriptionRequested();
 }
 
 /// Internal — new snapshot from the Firestore stream
@@ -23,6 +19,15 @@ class _ListingsUpdated extends ListingsEvent {
 
   @override
   List<Object?> get props => [listings];
+}
+
+/// Internal — stream emitted an error; triggers auto-resubscribe
+class _ListingsStreamErrored extends ListingsEvent {
+  const _ListingsStreamErrored(this.message);
+  final String message;
+
+  @override
+  List<Object?> get props => [message];
 }
 
 /// User changed the category filter chip

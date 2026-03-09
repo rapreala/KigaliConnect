@@ -15,6 +15,7 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
         super(const ListingsInitial()) {
     on<ListingsSubscriptionRequested>(_onSubscriptionRequested);
     on<_ListingsUpdated>(_onListingsUpdated);
+    on<_ListingsStreamErrored>(_onStreamErrored);
     on<ListingsCategoryChanged>(_onCategoryChanged);
     on<ListingsSearchChanged>(_onSearchChanged);
     on<ListingCreated>(_onListingCreated);
@@ -24,6 +25,9 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
 
   final ListingsRepository _repo;
   StreamSubscription<List<Listing>>? _listingsSubscription;
+
+  // Master list — all listings from Firestore, unfiltered.
+  List<Listing> _allListings = [];
   PlaceCategory? _activeCategory;
   String _searchQuery = '';
 
@@ -31,14 +35,17 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
     ListingsSubscriptionRequested event,
     Emitter<ListingsState> emit,
   ) {
-    _activeCategory = event.category;
     emit(const ListingsLoading());
+    _subscribe();
+  }
+
+  void _subscribe() {
     _listingsSubscription?.cancel();
-    _listingsSubscription = _repo
-        .watchListings(category: event.category)
-        .listen(
+    // Always stream ALL listings — category filtering is done client-side so
+    // switching categories is instant without a new Firestore round-trip.
+    _listingsSubscription = _repo.watchListings().listen(
           (listings) => add(_ListingsUpdated(listings)),
-          onError: (Object e) => emit(ListingsError(e.toString())),
+          onError: (Object e) => add(_ListingsStreamErrored(e.toString())),
         );
   }
 
@@ -46,12 +53,18 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
     _ListingsUpdated event,
     Emitter<ListingsState> emit,
   ) {
-    emit(ListingsLoaded(
-      listings: event.listings,
-      filteredListings: _applyFilter(event.listings),
-      selectedCategory: _activeCategory,
-      searchQuery: _searchQuery,
-    ));
+    _allListings = event.listings;
+    emit(_buildLoaded());
+  }
+
+  void _onStreamErrored(
+    _ListingsStreamErrored event,
+    Emitter<ListingsState> emit,
+  ) {
+    if (state is! ListingsLoaded) {
+      emit(ListingsError(event.message));
+    }
+    _subscribe();
   }
 
   void _onCategoryChanged(
@@ -59,13 +72,8 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
     Emitter<ListingsState> emit,
   ) {
     _activeCategory = event.category;
-    _listingsSubscription?.cancel();
-    _listingsSubscription = _repo
-        .watchListings(category: event.category)
-        .listen(
-          (listings) => add(_ListingsUpdated(listings)),
-          onError: (Object e) => emit(ListingsError(e.toString())),
-        );
+    // Client-side filter — instant, no Firestore round-trip needed.
+    emit(_buildLoaded());
   }
 
   void _onSearchChanged(
@@ -73,13 +81,7 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
     Emitter<ListingsState> emit,
   ) {
     _searchQuery = event.query.toLowerCase();
-    final current = state;
-    if (current is ListingsLoaded) {
-      emit(current.copyWith(
-        filteredListings: _applyFilter(current.listings),
-        searchQuery: event.query,
-      ));
-    }
+    emit(_buildLoaded());
   }
 
   Future<void> _onListingCreated(
@@ -87,8 +89,10 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
     Emitter<ListingsState> emit,
   ) async {
     try {
-      await _repo.createListing(event.listing);
+      final created = await _repo.createListing(event.listing);
+      _allListings = [created, ..._allListings];
       emit(const ListingsActionSuccess('Listing added successfully.'));
+      emit(_buildLoaded());
     } catch (e) {
       emit(ListingsError(e.toString()));
     }
@@ -100,7 +104,11 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
   ) async {
     try {
       await _repo.updateListing(event.listing);
+      _allListings = _allListings
+          .map((l) => l.id == event.listing.id ? event.listing : l)
+          .toList();
       emit(const ListingsActionSuccess('Listing updated successfully.'));
+      emit(_buildLoaded());
     } catch (e) {
       emit(ListingsError(e.toString()));
     }
@@ -112,19 +120,38 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
   ) async {
     try {
       await _repo.deleteListing(event.id);
+      _allListings = _allListings.where((l) => l.id != event.id).toList();
       emit(const ListingsActionSuccess('Listing deleted.'));
+      emit(_buildLoaded());
     } catch (e) {
       emit(ListingsError(e.toString()));
     }
   }
 
-  List<Listing> _applyFilter(List<Listing> all) {
-    if (_searchQuery.isEmpty) return all;
-    return all.where((l) {
-      return l.name.toLowerCase().contains(_searchQuery) ||
-          l.address.toLowerCase().contains(_searchQuery) ||
-          l.description.toLowerCase().contains(_searchQuery);
-    }).toList();
+  /// Builds a [ListingsLoaded] from [_allListings] applying both the active
+  /// category filter and the current search query.
+  ListingsLoaded _buildLoaded() {
+    final byCategory = _activeCategory == null
+        ? _allListings
+        : _allListings
+            .where((l) => l.category == _activeCategory)
+            .toList();
+
+    final bySearch = _searchQuery.isEmpty
+        ? byCategory
+        : byCategory.where((l) {
+            return l.name.toLowerCase().contains(_searchQuery) ||
+                l.address.toLowerCase().contains(_searchQuery) ||
+                l.description.toLowerCase().contains(_searchQuery);
+          }).toList();
+
+    return ListingsLoaded(
+      allListings: _allListings,
+      listings: byCategory,
+      filteredListings: bySearch,
+      selectedCategory: _activeCategory,
+      searchQuery: _searchQuery,
+    );
   }
 
   @override

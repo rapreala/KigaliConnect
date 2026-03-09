@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kigali_connect/config/theme.dart';
+import 'package:kigali_connect/domain/models/enums.dart';
 import 'package:kigali_connect/presentation/blocs/auth/auth_bloc.dart';
 import 'package:kigali_connect/presentation/blocs/listings/listings_bloc.dart';
 import 'package:kigali_connect/presentation/screens/listings/add_listing_screen.dart';
@@ -35,6 +36,42 @@ class _ListingsScreenState extends State<ListingsScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Widget _buildEmptyState(BuildContext context, ListingsLoaded loaded) {
+    final hasSearch = loaded.searchQuery.isNotEmpty;
+    final hasCategory = loaded.selectedCategory != null;
+
+    if (hasSearch) {
+      return EmptyState(
+        icon: Icons.search_off_outlined,
+        title: 'No results for "${loaded.searchQuery}"',
+        subtitle: 'Try a different keyword or clear the search',
+      );
+    }
+
+    if (hasCategory) {
+      final catName = loaded.selectedCategory!.displayName;
+      return EmptyState(
+        icon: loaded.selectedCategory!.iconData,
+        title: 'No $catName places yet',
+        subtitle: 'Be the first to add a $catName spot in Kigali!',
+        actionLabel: 'Add $catName Place',
+        onAction: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const AddListingScreen()),
+        ),
+      );
+    }
+
+    return EmptyState(
+      icon: Icons.location_off_outlined,
+      title: 'No places yet',
+      subtitle: 'Start building the Kigali directory — add the first place!',
+      actionLabel: 'Add a Place',
+      onAction: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const AddListingScreen()),
+      ),
+    );
   }
 
   bool _canEdit(BuildContext context, String createdBy) {
@@ -126,11 +163,7 @@ class _ListingsScreenState extends State<ListingsScreen> {
                 const SizedBox(height: AppSpacing.p8),
                 Expanded(
                   child: items.isEmpty
-                      ? const EmptyState(
-                          icon: Icons.location_off_outlined,
-                          title: 'No places found',
-                          subtitle: 'Try a different search or category',
-                        )
+                      ? _buildEmptyState(context, loaded)
                       : ListView.builder(
                           itemCount: items.length,
                           itemBuilder: (context, index) {

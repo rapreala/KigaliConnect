@@ -196,7 +196,7 @@ These tasks establish the project foundation. Estimated time: 1–2 days.
 
 #### Listings CRUD
 
-- [x] 5. Implement listings data layer
+- [x] 5. Implement listings data layer ✅
   - **Implementation note**: Combined `ListingService` + `ListingRepository` into `FirebaseListingsRepository`. Abstract interface in `lib/domain/repositories/listings_repository.dart`.
   - [x] 5.1 + 5.2 — `lib/data/repositories/firebase_listings_repository.dart`
     - `watchListings({PlaceCategory? category})` — real-time stream, optional category filter
@@ -230,7 +230,7 @@ These tasks establish the project foundation. Estimated time: 1–2 days.
   - [x] 8.5 My Listings flow — **implementation note**: edit/delete gated by `canEdit` flag (only shown to the listing creator) rather than a separate "My Listings" tab; simplifies navigation to 3 tabs
   - _Requirements: LIST-01, LIST-02, LIST-03, LIST-04, LIST-05, SEARCH-01, SEARCH-02, BLoC-06_
 
-- [ ] 9. Checkpoint — Listings CRUD complete
+- [x] 9. Checkpoint — Listings CRUD complete ✅
   - Create a listing → appears in list and Firebase Console in real time
   - Edit listing → changes reflected immediately
   - Delete listing → removed immediately

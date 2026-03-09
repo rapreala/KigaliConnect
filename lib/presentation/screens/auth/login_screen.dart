@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
-                                  ?.copyWith(color: AppColors.textSecondary),
+                                  ?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
                             ),
                           ),
                           const Expanded(child: Divider()),
@@ -141,8 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           padding: const EdgeInsets.symmetric(
                               vertical: AppSpacing.p12),
                           side: BorderSide(
-                              color: AppColors.textSecondary.withValues(
-                                  alpha: 0.4)),
+                              color: Theme.of(context).colorScheme.outline),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.p16),

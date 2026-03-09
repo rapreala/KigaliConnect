@@ -17,18 +17,25 @@ class ListingsLoading extends ListingsState {
 
 class ListingsLoaded extends ListingsState {
   const ListingsLoaded({
+    required this.allListings,
     required this.listings,
     this.filteredListings = const [],
     this.selectedCategory,
     this.searchQuery = '',
   });
 
+  /// Every listing from Firestore — unaffected by category or search filter.
+  /// Used by MapViewScreen to always show all markers.
+  final List<Listing> allListings;
+
+  /// Category-filtered listings (or all if no category selected).
   final List<Listing> listings;
   final List<Listing> filteredListings;
   final PlaceCategory? selectedCategory;
   final String searchQuery;
 
   ListingsLoaded copyWith({
+    List<Listing>? allListings,
     List<Listing>? listings,
     List<Listing>? filteredListings,
     PlaceCategory? selectedCategory,
@@ -36,6 +43,7 @@ class ListingsLoaded extends ListingsState {
     String? searchQuery,
   }) {
     return ListingsLoaded(
+      allListings: allListings ?? this.allListings,
       listings: listings ?? this.listings,
       filteredListings: filteredListings ?? this.filteredListings,
       selectedCategory:
@@ -46,6 +54,7 @@ class ListingsLoaded extends ListingsState {
 
   @override
   List<Object?> get props => [
+        allListings,
         listings,
         filteredListings,
         selectedCategory,

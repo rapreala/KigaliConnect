@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kigali_connect/presentation/screens/listings/listings_screen.dart';
+import 'package:kigali_connect/presentation/screens/listings/my_listings_screen.dart';
 import 'package:kigali_connect/presentation/screens/map/map_view_screen.dart';
 import 'package:kigali_connect/presentation/screens/settings/settings_screen.dart';
 
@@ -16,6 +17,7 @@ class _AppShellState extends State<AppShell> {
   static const _tabs = [
     ListingsScreen(),
     MapViewScreen(),
+    MyListingsScreen(),
     SettingsScreen(),
   ];
 
@@ -29,6 +31,11 @@ class _AppShellState extends State<AppShell> {
       icon: Icon(Icons.map_outlined),
       activeIcon: Icon(Icons.map),
       label: 'Map',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.storefront_outlined),
+      activeIcon: Icon(Icons.storefront),
+      label: 'My Listings',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.settings_outlined),

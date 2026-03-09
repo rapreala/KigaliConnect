@@ -23,6 +23,17 @@ class _MapViewScreenState extends State<MapViewScreen> {
   static const _kigaliCenter = LatLng(-1.9441, 30.0619);
   static const _initialZoom = 13.0;
 
+  @override
+  void initState() {
+    super.initState();
+    // Kick off the subscription if not already started (e.g. user opens
+    // Map tab before visiting the Places tab).
+    final state = context.read<ListingsBloc>().state;
+    if (state is ListingsInitial) {
+      context.read<ListingsBloc>().add(const ListingsSubscriptionRequested());
+    }
+  }
+
   Set<Marker> _buildMarkers(
     List<Listing> listings,
     BuildContext context,
@@ -44,31 +55,27 @@ class _MapViewScreenState extends State<MapViewScreen> {
             ));
           },
         ),
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          _categoryHue(l),
-        ),
+        icon: BitmapDescriptor.defaultMarkerWithHue(_categoryHue(l)),
       );
     }).toSet();
   }
 
   double _categoryHue(Listing l) {
-    switch (l.category.name) {
-      case 'hospital':
+    switch (l.category) {
+      case PlaceCategory.hospital:
         return BitmapDescriptor.hueRed;
-      case 'policeStation':
+      case PlaceCategory.policeStation:
         return BitmapDescriptor.hueBlue;
-      case 'library':
+      case PlaceCategory.library:
         return BitmapDescriptor.hueViolet;
-      case 'restaurantCafe':
+      case PlaceCategory.restaurantCafe:
         return BitmapDescriptor.hueOrange;
-      case 'park':
+      case PlaceCategory.park:
         return BitmapDescriptor.hueGreen;
-      case 'touristAttraction':
+      case PlaceCategory.touristAttraction:
         return BitmapDescriptor.hueYellow;
-      case 'utilityOffice':
+      case PlaceCategory.utilityOffice:
         return BitmapDescriptor.hueCyan;
-      default:
-        return BitmapDescriptor.hueRed;
     }
   }
 
@@ -91,9 +98,6 @@ class _MapViewScreenState extends State<MapViewScreen> {
             );
           }
 
-          final listings =
-              state is ListingsLoaded ? state.listings : <Listing>[];
-
           if (_mapLoadFailed) {
             return ErrorMessage(
               message: 'Map could not be loaded. '
@@ -101,6 +105,11 @@ class _MapViewScreenState extends State<MapViewScreen> {
               onRetry: () => setState(() => _mapLoadFailed = false),
             );
           }
+
+          // Use allListings so markers are never hidden by the Places tab's
+          // active category or search filter.
+          final listings =
+              state is ListingsLoaded ? state.allListings : <Listing>[];
 
           return GoogleMap(
             initialCameraPosition: const CameraPosition(

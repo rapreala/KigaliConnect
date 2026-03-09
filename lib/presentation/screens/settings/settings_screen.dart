@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kigali_connect/config/theme.dart';
 import 'package:kigali_connect/presentation/blocs/auth/auth_bloc.dart';
 import 'package:kigali_connect/presentation/blocs/settings/settings_cubit.dart';
+import 'package:kigali_connect/presentation/blocs/settings/theme_cubit.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -42,6 +43,8 @@ class SettingsScreen extends StatelessWidget {
           }
 
           final isSaving = state is SettingsSaving;
+          final isDarkMode =
+              context.watch<ThemeCubit>().state == ThemeMode.dark;
 
           return ListView(
             children: [
@@ -75,7 +78,7 @@ class SettingsScreen extends StatelessWidget {
                         Text(
                           profile.email,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.65),
                               ),
                         ),
                       ],
@@ -97,6 +100,18 @@ class SettingsScreen extends StatelessWidget {
                     : (value) => context
                         .read<SettingsCubit>()
                         .toggleNotifications(uid: profile.uid, enabled: value),
+              ),
+
+              const Divider(),
+
+              // Dark mode toggle
+              SwitchListTile(
+                secondary: const Icon(Icons.dark_mode_outlined),
+                title: const Text('Dark Mode'),
+                subtitle: Text(isDarkMode ? 'Dark theme active' : 'Light theme active'),
+                value: isDarkMode,
+                activeThumbColor: AppColors.primary,
+                onChanged: (_) => context.read<ThemeCubit>().toggleTheme(),
               ),
 
               const Divider(),

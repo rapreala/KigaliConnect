@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:kigali_connect/config/theme.dart';
 
 class AppTextField extends StatefulWidget {
   final String label;
@@ -58,7 +57,7 @@ class _AppTextFieldState extends State<AppTextField> {
       maxLines: _obscure ? 1 : widget.maxLines,
       inputFormatters: widget.inputFormatters,
       readOnly: widget.readOnly,
-      style: const TextStyle(color: AppColors.textPrimary),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,
@@ -68,7 +67,7 @@ class _AppTextFieldState extends State<AppTextField> {
             ? IconButton(
                 icon: Icon(
                   _obscure ? Icons.visibility_off : Icons.visibility,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                   size: 20,
                 ),
                 onPressed: () => setState(() => _obscure = !_obscure),

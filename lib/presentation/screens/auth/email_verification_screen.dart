@@ -94,7 +94,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     Text(
                       'This screen will update automatically once verified.',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                       textAlign: TextAlign.center,
                     ),

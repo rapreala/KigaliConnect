@@ -15,19 +15,20 @@ class ListingDetailScreen extends StatelessWidget {
     this.canEdit = false,
   });
 
+  // Initial listing used for first render; live updates come from the bloc.
   final Listing listing;
   final bool canEdit;
 
-  Future<void> _openInMaps() async {
+  Future<void> _openInMaps(Listing current) async {
     final uri = Uri.parse(
       'https://www.google.com/maps/search/?api=1'
-      '&query=${listing.latitude},${listing.longitude}',
+      '&query=${current.latitude},${current.longitude}',
     );
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
-  Future<void> _callPhone(BuildContext context) async {
-    final uri = Uri(scheme: 'tel', path: listing.contactNumber);
+  Future<void> _callPhone(BuildContext context, Listing current) async {
+    final uri = Uri(scheme: 'tel', path: current.contactNumber);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else if (context.mounted) {
@@ -37,12 +38,12 @@ class ListingDetailScreen extends StatelessWidget {
     }
   }
 
-  void _confirmDelete(BuildContext context) {
+  void _confirmDelete(BuildContext context, Listing current) {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete listing?'),
-        content: Text('Remove "${listing.name}" permanently?'),
+        content: Text('Remove "${current.name}" permanently?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -68,24 +69,56 @@ class ListingDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cat = listing.category;
+    return BlocConsumer<ListingsBloc, ListingsState>(
+      // Only rebuild when the specific listing changes or is removed.
+      buildWhen: (prev, curr) => curr is ListingsLoaded,
+      listenWhen: (prev, curr) => curr is ListingsLoaded,
+      listener: (context, state) {
+        if (state is ListingsLoaded) {
+          final still = state.listings.any((l) => l.id == listing.id) ||
+              state.filteredListings.any((l) => l.id == listing.id);
+          if (!still && Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      builder: (context, state) {
+        // Use live listing from bloc if available, else fall back to initial.
+        Listing current = listing;
+        if (state is ListingsLoaded) {
+          final live = [
+            ...state.listings,
+            ...state.filteredListings,
+          ].cast<Listing?>().firstWhere(
+                (l) => l?.id == listing.id,
+                orElse: () => null,
+              );
+          if (live != null) current = live;
+        }
+        return _buildScaffold(context, current);
+      },
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, Listing current) {
+    final cat = current.category;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(listing.name),
+        title: Text(current.name),
         actions: canEdit
             ? [
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => EditListingScreen(listing: listing),
+                      builder: (_) => EditListingScreen(listing: current),
                     ),
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outlined),
-                  onPressed: () => _confirmDelete(context),
+                  onPressed: () => _confirmDelete(context, current),
                 ),
               ]
             : null,
@@ -101,14 +134,14 @@ class ListingDetailScreen extends StatelessWidget {
                 children: [
                   GoogleMap(
                     initialCameraPosition: CameraPosition(
-                      target: LatLng(listing.latitude, listing.longitude),
+                      target: LatLng(current.latitude, current.longitude),
                       zoom: 15,
                     ),
                     markers: {
                       Marker(
-                        markerId: MarkerId(listing.id),
-                        position: LatLng(listing.latitude, listing.longitude),
-                        infoWindow: InfoWindow(title: listing.name),
+                        markerId: MarkerId(current.id),
+                        position: LatLng(current.latitude, current.longitude),
+                        infoWindow: InfoWindow(title: current.name),
                       ),
                     },
                     zoomControlsEnabled: false,
@@ -121,8 +154,8 @@ class ListingDetailScreen extends StatelessWidget {
                     bottom: AppSpacing.p12,
                     right: AppSpacing.p12,
                     child: FloatingActionButton.small(
-                      heroTag: 'open_maps_${listing.id}',
-                      onPressed: _openInMaps,
+                      heroTag: 'open_maps_${current.id}',
+                      onPressed: () => _openInMaps(current),
                       tooltip: 'Open in Google Maps',
                       child: const Icon(Icons.open_in_new, size: 18),
                     ),
@@ -142,7 +175,7 @@ class ListingDetailScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          listing.name,
+                          current.name,
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       ),
@@ -181,16 +214,16 @@ class ListingDetailScreen extends StatelessWidget {
                   // Address
                   _InfoRow(
                     icon: Icons.location_on_outlined,
-                    text: listing.address,
+                    text: current.address,
                   ),
                   const SizedBox(height: AppSpacing.p12),
 
                   // Phone — tappable
                   GestureDetector(
-                    onTap: () => _callPhone(context),
+                    onTap: () => _callPhone(context, current),
                     child: _InfoRow(
                       icon: Icons.phone_outlined,
-                      text: listing.contactNumber,
+                      text: current.contactNumber,
                       textColor: AppColors.primary,
                     ),
                   ),
@@ -200,7 +233,7 @@ class ListingDetailScreen extends StatelessWidget {
                   _InfoRow(
                     icon: Icons.my_location_outlined,
                     text:
-                        '${listing.latitude.toStringAsFixed(4)}, ${listing.longitude.toStringAsFixed(4)}',
+                        '${current.latitude.toStringAsFixed(4)}, ${current.longitude.toStringAsFixed(4)}',
                   ),
 
                   const SizedBox(height: AppSpacing.p16),
@@ -211,11 +244,8 @@ class ListingDetailScreen extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: AppSpacing.p8),
                   Text(
-                    listing.description,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(color: AppColors.textSecondary),
+                    current.description,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
 
                   const SizedBox(height: AppSpacing.p24),
@@ -224,7 +254,7 @@ class ListingDetailScreen extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _openInMaps,
+                      onPressed: () => _openInMaps(current),
                       icon: const Icon(Icons.directions),
                       label: const Text('Get Directions'),
                     ),
@@ -255,13 +285,14 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: AppColors.textSecondary),
+        Icon(icon, size: 18,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
         const SizedBox(width: AppSpacing.p8),
         Expanded(
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: textColor ?? AppColors.textPrimary,
+                  color: textColor,
                 ),
           ),
         ),

@@ -22,7 +22,16 @@ class FirebaseListingsRepository implements ListingsRepository {
     }
 
     return query.snapshots().map(
-          (snap) => snap.docs.map((d) => Listing.fromJson(d.data())).toList(),
+          (snap) => snap.docs
+              .map((d) {
+                try {
+                  return Listing.fromJson(d.data());
+                } catch (_) {
+                  return null;
+                }
+              })
+              .whereType<Listing>()
+              .toList(),
         );
   }
 
