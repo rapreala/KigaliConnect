@@ -70,11 +70,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
     try {
-      final profile = await _authRepository.signIn(
+      await _authRepository.signIn(
         email: event.email,
         password: event.password,
       );
-      emit(AuthAuthenticated(profile));
+      // Block unverified email/password users from entering the app.
+      // Google users always have emailVerified == true so they pass through.
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null && !firebaseUser.emailVerified) {
+        emit(const AuthEmailNotVerified());
+        return;
+      }
+      final profile = await _authRepository.getCurrentUserProfile();
+      if (profile != null) {
+        emit(AuthAuthenticated(profile));
+      } else {
+        emit(const AuthUnauthenticated());
+      }
     } on FirebaseAuthException catch (e) {
       emit(AuthFailure(_mapFirebaseError(e)));
     } catch (e) {
