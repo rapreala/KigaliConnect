@@ -44,7 +44,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const AuthUnauthenticated());
       return;
     }
-    if (!user.emailVerified) {
+
+    // Sync with Firebase to catch deleted/disabled accounts that are still
+    // cached locally on the device.
+    try {
+      await user.reload();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found' || e.code == 'user-disabled') {
+        await _authRepository.signOut();
+        emit(const AuthUnauthenticated());
+        return;
+      }
+    } catch (_) {
+      // Ignore transient network errors — proceed with cached user.
+    }
+
+    // Re-read after reload to get the freshest token state.
+    final refreshed = FirebaseAuth.instance.currentUser;
+    if (refreshed == null) {
+      emit(const AuthUnauthenticated());
+      return;
+    }
+
+    if (!refreshed.emailVerified) {
       emit(const AuthEmailNotVerified());
       return;
     }
