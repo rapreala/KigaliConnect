@@ -89,10 +89,12 @@ class ListingsBloc extends Bloc<ListingsEvent, ListingsState> {
     Emitter<ListingsState> emit,
   ) async {
     try {
-      final created = await _repo.createListing(event.listing);
-      _allListings = [created, ..._allListings];
+      await _repo.createListing(event.listing);
+      // No optimistic prepend — Firestore's local cache fires the stream
+      // immediately, so the new listing appears via _onListingsUpdated without
+      // any visible delay. Prepending here caused a duplicate because
+      // _onListingsUpdated runs concurrently and already updated _allListings.
       emit(const ListingsActionSuccess('Listing added successfully.'));
-      emit(_buildLoaded());
     } catch (e) {
       emit(ListingsError(e.toString()));
     }
