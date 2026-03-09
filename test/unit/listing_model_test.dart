@@ -4,10 +4,10 @@ import 'package:kigali_connect/domain/models/enums.dart';
 import 'package:kigali_connect/domain/models/listing.dart';
 
 void main() {
-  final _createdAt = DateTime(2024, 6, 1, 10, 0);
-  final _updatedAt = DateTime(2024, 6, 2, 12, 0);
+  final createdAt = DateTime(2024, 6, 1, 10, 0);
+  final updatedAt = DateTime(2024, 6, 2, 12, 0);
 
-  Listing _baseListing() => Listing(
+  Listing baseListing() => Listing(
         id: 'listing-1',
         name: 'King Faisal Hospital',
         category: PlaceCategory.hospital,
@@ -17,13 +17,13 @@ void main() {
         latitude: -1.9441,
         longitude: 30.0619,
         createdBy: 'user-abc',
-        createdAt: _createdAt,
-        updatedAt: _updatedAt,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
       );
 
   group('Listing.toJson / fromJson', () {
     test('round-trips all fields correctly', () {
-      final original = _baseListing();
+      final original = baseListing();
       final json = original.toJson();
       final restored = Listing.fromJson(json);
 
@@ -41,18 +41,18 @@ void main() {
     });
 
     test('toJson serialises category as enum name string', () {
-      final json = _baseListing().toJson();
+      final json = baseListing().toJson();
       expect(json['category'], 'hospital');
     });
 
     test('toJson serialises dates as Firestore Timestamps', () {
-      final json = _baseListing().toJson();
+      final json = baseListing().toJson();
       expect(json['createdAt'], isA<Timestamp>());
       expect(json['updatedAt'], isA<Timestamp>());
     });
 
     test('fromJson handles int latitude/longitude (Firestore stores as num)', () {
-      final json = _baseListing().toJson();
+      final json = baseListing().toJson();
       // Replace doubles with ints to simulate Firestore int storage
       json['latitude'] = -2;
       json['longitude'] = 30;
@@ -63,7 +63,7 @@ void main() {
 
     test('round-trips every PlaceCategory variant', () {
       for (final cat in PlaceCategory.values) {
-        final listing = _baseListing().copyWith(category: cat);
+        final listing = baseListing().copyWith(category: cat);
         final restored = Listing.fromJson(listing.toJson());
         expect(restored.category, cat);
       }
@@ -72,13 +72,13 @@ void main() {
 
   group('Listing.copyWith', () {
     test('returns equal object when no overrides given', () {
-      final original = _baseListing();
+      final original = baseListing();
       final copy = original.copyWith();
       expect(copy, original);
     });
 
     test('overrides only the specified fields', () {
-      final original = _baseListing();
+      final original = baseListing();
       final copy = original.copyWith(
         name: 'Updated Name',
         category: PlaceCategory.park,
@@ -94,7 +94,7 @@ void main() {
     });
 
     test('original is not mutated after copyWith', () {
-      final original = _baseListing();
+      final original = baseListing();
       original.copyWith(name: 'Changed');
       expect(original.name, 'King Faisal Hospital');
     });
@@ -102,29 +102,29 @@ void main() {
 
   group('Listing equality', () {
     test('two listings with same id/fields are equal', () {
-      expect(_baseListing(), _baseListing());
+      expect(baseListing(), baseListing());
     });
 
     test('listings with different ids are not equal', () {
-      final a = _baseListing();
-      final b = _baseListing().copyWith(id: 'listing-2');
+      final a = baseListing();
+      final b = baseListing().copyWith(id: 'listing-2');
       expect(a, isNot(b));
     });
 
     test('listings with different names are not equal', () {
-      final a = _baseListing();
-      final b = _baseListing().copyWith(name: 'Other Place');
+      final a = baseListing();
+      final b = baseListing().copyWith(name: 'Other Place');
       expect(a, isNot(b));
     });
 
     test('hashCodes match for equal listings', () {
-      expect(_baseListing().hashCode, _baseListing().hashCode);
+      expect(baseListing().hashCode, baseListing().hashCode);
     });
   });
 
   group('Listing.toString', () {
     test('contains name and id', () {
-      final s = _baseListing().toString();
+      final s = baseListing().toString();
       expect(s, contains('King Faisal Hospital'));
       expect(s, contains('listing-1'));
     });
