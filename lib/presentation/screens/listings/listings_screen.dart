@@ -19,6 +19,9 @@ class ListingsScreen extends StatefulWidget {
 
 class _ListingsScreenState extends State<ListingsScreen> {
   final _searchController = TextEditingController();
+  // Cache the last loaded state so the list stays visible during transient
+  // states like ListingsActionSuccess (which carries no list data).
+  ListingsLoaded? _lastLoaded;
 
   @override
   void initState() {
@@ -103,16 +106,19 @@ class _ListingsScreenState extends State<ListingsScreen> {
             );
           }
 
-          if (state is ListingsLoaded) {
-            final items = state.searchQuery.isEmpty
-                ? state.listings
-                : state.filteredListings;
+          if (state is ListingsLoaded) _lastLoaded = state;
+          final loaded = state is ListingsLoaded ? state : _lastLoaded;
+
+          if (loaded != null) {
+            final items = loaded.searchQuery.isEmpty
+                ? loaded.listings
+                : loaded.filteredListings;
 
             return Column(
               children: [
                 const SizedBox(height: AppSpacing.p8),
                 CategoryFilterBar(
-                  selected: state.selectedCategory,
+                  selected: loaded.selectedCategory,
                   onSelected: (cat) => context
                       .read<ListingsBloc>()
                       .add(ListingsCategoryChanged(cat)),
